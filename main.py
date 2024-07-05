@@ -1,8 +1,5 @@
-import base64
-import hashlib
-import hmac
 import os
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from dotenv import load_dotenv
 from linebot import LineBot
 
@@ -19,8 +16,8 @@ async def root():
 
 @app.post("/callback")
 async def callback(request: Request):
-    is_valid_signature = await linebot.is_valid_signature()
+    is_valid_signature = await linebot.is_valid_signature(request)
     if is_valid_signature:
-        return ("", 200)
+        return ""
     else:
-        return ("Invalid LINE signature", 403)
+        raise HTTPException(status_code=403, detail="Invalid LINE signature")
