@@ -9,7 +9,6 @@ load_dotenv()
 
 app = FastAPI()
 channel_secret = os.getenv("CHANNEL_SECRET").encode("utf-8")
-# channel_secret = b"76579bbf068a4ad915793bd698af739b"
 
 @app.get("/")
 async def root():
