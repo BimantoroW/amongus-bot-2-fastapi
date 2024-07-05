@@ -4,11 +4,14 @@ import hmac
 import os
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
+from linebot import LineBot
+
 
 load_dotenv()
 
 app = FastAPI()
-channel_secret = os.getenv("CHANNEL_SECRET").encode("utf-8")
+channel_secret = os.getenv("CHANNEL_SECRET")
+linebot = LineBot(channel_secret)
 
 @app.get("/")
 async def root():
@@ -16,12 +19,8 @@ async def root():
 
 @app.post("/callback")
 async def callback(request: Request):
-    body = await request.body()
-    hash = hmac.new(channel_secret, body, hashlib.sha256).digest()
-    signature = base64.b64encode(hash).decode("utf-8")
-    x_line_signature = request.headers["x-line-signature"]
-
-    print(f"{signature = }")
-    print(f"{x_line_signature = }")
-    print(f"is_valid_signature = {signature == x_line_signature}")
-    return ("", 200)
+    is_valid_signature = await linebot.is_valid_signature()
+    if is_valid_signature:
+        return ("", 200)
+    else:
+        return ("Invalid LINE signature", 403)
