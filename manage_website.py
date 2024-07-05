@@ -58,6 +58,16 @@ elif arg == "reload":
     # enable:
     response = requests.patch(endpoint, headers=headers, json={"enabled": True})
     pprint(response.json())
+elif arg == "disable":
+    endpoint = urljoin(api_base, f"websites/{domain_name}/")
+    # disable:
+    response = requests.patch(endpoint, headers=headers, json={"enabled": False})
+    pprint(response.json())
+elif arg == "enable":
+    endpoint = urljoin(api_base, f"websites/{domain_name}/")
+    # enable:
+    response = requests.patch(endpoint, headers=headers, json={"enabled": True})
+    pprint(response.json())
 elif arg == "delete":
     response = requests.delete(
         urljoin(api_base, f"websites/{domain_name}/"),
