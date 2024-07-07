@@ -1,4 +1,3 @@
-from linebot import LineBot
 from typing import Any
 
 class Command:
@@ -8,7 +7,7 @@ class Command:
     def can_execute(self, message: str) -> bool:
         pass
 
-    def execute(self, event: dict[str, Any], bot: LineBot) -> None:
+    def execute(self, event: dict[str, Any], bot) -> None:
         pass
 
     def _extract_reply_token(self, event: dict[str, Any]) -> str:
@@ -25,7 +24,7 @@ class CockCommand(Command):
     def can_execute(self, message: str) -> bool:
         return message.lower() == self.triggers[0]
     
-    def execute(self, event: dict[str, Any], bot: LineBot) -> None:
+    def execute(self, event: dict[str, Any], bot) -> None:
         message = self._extract_message(event)
         if self.can_execute(message):
             cock_url = "https://i.ytimg.com/vi/d94Nz9s3VBc/sddefault.jpg?v=5f73ada9"
@@ -42,7 +41,7 @@ class LeaveCommand(Command):
         cmd = message.split()[0]
         return cmd.lower() == self.triggers[0] or message.lower() == self.triggers[1]
     
-    def execute(self, event: dict[str, Any], bot: LineBot) -> None:
+    def execute(self, event: dict[str, Any], bot) -> None:
         message = self._extract_message(event)
         if self.can_execute(message):
             source_type = event["source"]["type"]
