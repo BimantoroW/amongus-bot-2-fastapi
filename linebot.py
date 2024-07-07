@@ -69,6 +69,11 @@ class LineBot:
             "previewImageUrl": preview_url if preview_url else content_url
         }
     
+    def text_message(self, text: str):
+        return {
+            "type": "text",
+            "text": text
+        }
 
     def __generate_headers(self, content_type: bool, authorization: bool):
         headers = {}

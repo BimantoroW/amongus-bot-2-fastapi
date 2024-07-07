@@ -52,7 +52,28 @@ class LeaveCommand(Command):
                 room_id = event["source"]["roomId"]
                 bot.leave_group(room_id, True)
 
+class NiggaCommand(Command):
+    def __init__(self) -> None:
+        triggers = ["nigga"]
+        super().__init__(triggers)
+    
+    def can_execute(self, message: str) -> bool:
+        return self.triggers[0] in message.lower()
+    
+    def execute(self, event: dict[str, Any], bot) -> None:
+        message = self._extract_message(event)
+        if self.can_execute(message):
+            with open("nword.count", "r+") as f:
+                current = int(f.read())
+                current += 1
+                reply_token = self._extract_reply_token(event)
+                messages = [bot.text_message(f"Nigga counter: {current}")]
+                bot.send_reply(reply_token, messages)
+                f.write(str(current))
+                f.truncate()
+
 commands = [
     CockCommand(),
-    LeaveCommand()
+    LeaveCommand(),
+    NiggaCommand()
 ]
