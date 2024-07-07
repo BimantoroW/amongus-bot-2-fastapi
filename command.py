@@ -1,5 +1,9 @@
 from typing import Any
+import google.generativeai as genai
 import os
+
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 class Command:
     def __init__(self, triggers: list[str]) -> None:
@@ -75,8 +79,27 @@ class NiggaCommand(Command):
                 with open("amongus-bot-2/nword.count", "w") as f:
                     f.write(str(self.counter))
 
+class ChatCommand(Command):
+    def __init__(self) -> None:
+        triggers = ["/chat"]
+        super().__init__(triggers)
+    
+    def can_execute(self, message: str) -> bool:
+        cmd, args = message.lower().split(" ", 1)
+        return cmd in self.triggers and args != ""
+    
+    def execute(self, event: dict[str, Any], bot) -> None:
+        message = self._extract_message(event)
+        if self.can_execute(message):
+            args = message.lower().split(" ", 1)[1]
+            response = model.generate_content(args)
+            reply_token = self._extract_reply_token(event)
+            messages = [bot.text_message(response.text)]
+            bot.send_reply(reply_token, messages)
+
 commands = [
     CockCommand(),
     LeaveCommand(),
-    NiggaCommand()
+    NiggaCommand(),
+    ChatCommand()
 ]
