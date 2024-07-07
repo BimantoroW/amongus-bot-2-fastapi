@@ -1,4 +1,5 @@
 from typing import Any
+import os
 
 class Command:
     def __init__(self, triggers: list[str]) -> None:
@@ -56,6 +57,8 @@ class NiggaCommand(Command):
     def __init__(self) -> None:
         triggers = ["nigga"]
         super().__init__(triggers)
+        with open("amongus-bot-2/nword.count", "r") as f:
+            self.counter = int(f.read())
     
     def can_execute(self, message: str) -> bool:
         return self.triggers[0] in message.lower()
@@ -63,14 +66,14 @@ class NiggaCommand(Command):
     def execute(self, event: dict[str, Any], bot) -> None:
         message = self._extract_message(event)
         if self.can_execute(message):
-            with open("nword.count", "r+") as f:
-                current = int(f.read())
-                current += 1
-                reply_token = self._extract_reply_token(event)
-                messages = [bot.text_message(f"Nigga counter: {current}")]
-                bot.send_reply(reply_token, messages)
-                f.write(str(current))
-                f.truncate()
+            new_count = message.lower().split().count("nigga")
+            self.counter += new_count
+            reply_token = self._extract_reply_token(event)
+            messages = [bot.text_message(f"Nigga counter: {self.counter}")]
+            bot.send_reply(reply_token, messages)
+            if self.counter % 10 == 0:
+                with open("amongus-bot-2/nword.count", "w") as f:
+                    f.write(str(self.counter))
 
 commands = [
     CockCommand(),
