@@ -69,7 +69,7 @@ class LineBot:
                             headers=headers,
                             proxies=proxies
                         )
-                        pprint(reponse.json())
+                        pprint(response.json())
                     elif type == "room":
                         room_id = event["source"]["roomId"]
                         endpoint = f"https://api.line.me/v2/bot/room/{room_id}/leave"
@@ -81,4 +81,4 @@ class LineBot:
                             headers=headers,
                             proxies=proxies
                         )
-                        pprint(reponse.json())
+                        pprint(response.json())
