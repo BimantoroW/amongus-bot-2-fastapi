@@ -38,7 +38,7 @@ class LineBot:
         endpoint = "https://api.line.me/v2/bot/message/reply"
         headers = self.__generate_headers(True, True)
         data = {
-            "replyToekn": reply_token,
+            "replyToken": reply_token,
             "messages": messages
         }
         response = requests.post(
@@ -62,11 +62,11 @@ class LineBot:
         )
         pprint(response.json())
 
-    def image_message(content_url: str, preview_url: str | None = None):
+    def image_message(self, content_url: str, preview_url: str | None = None):
         return {
             "type": "image",
             "originalContentUrl": content_url,
-            "previewImageUrl": preview_url if not preview_url else content_url
+            "previewImageUrl": preview_url if preview_url else content_url
         }
     
 

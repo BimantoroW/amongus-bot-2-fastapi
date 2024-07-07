@@ -11,7 +11,7 @@ class Command:
         pass
 
     def _extract_reply_token(self, event: dict[str, Any]) -> str:
-        return event["reply_token"]
+        return event["replyToken"]
     
     def _extract_message(self, event: dict[str, any]) -> str:
         return event["message"]["text"]
