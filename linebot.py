@@ -4,6 +4,7 @@ import hashlib
 import requests
 from fastapi import Request
 from pprint import pprint
+from command import commands
 
 
 proxies = {
@@ -15,6 +16,7 @@ class LineBot:
     def __init__(self, channel_secret: str, access_token: str) -> None:
         self.channel_secret = channel_secret
         self.access_token = access_token
+        self.commands = commands
     
     async def is_valid_signature(self, request: Request):
         line_signature = request.headers.get("x-line-signature", None)
@@ -26,59 +28,53 @@ class LineBot:
         return line_signature == signature
     
     async def execute(self, request: Request):
-        endpoint = "https://api.line.me/v2/bot/message/reply"
         body = await request.json()
-
         for event in body["events"]:
             if event["type"] == "message":
-                message = event["message"]["text"]
-                if message.lower() == "among us cock":
-                    reply_token = event["replyToken"]
-                    headers = {
-                        "Content-Type": "application/json",
-                        "Authorization": f"Bearer {self.access_token}"
-                    }
-                    data = {
-                        "replyToken": reply_token,
-                        "messages": [
-                            {
-                                "type": "image",
-                                "originalContentUrl": "https://i.ytimg.com/vi/d94Nz9s3VBc/sddefault.jpg?v=5f73ada9",
-                                "previewImageUrl": "https://i.ytimg.com/vi/d94Nz9s3VBc/sddefault.jpg?v=5f73ada9"
-                            }
-                        ]
-                    }
+                for cmd in self.commands:
+                    cmd.execute(event, self)
 
-                    response = requests.post(
-                        endpoint,
-                        headers=headers,
-                        json=data,
-                        proxies=proxies
-                    )
-                    pprint(response.json())
-                elif message.lower() == "/leave":
-                    type = event["source"]["type"]
-                    if type == "group":
-                        group_id = event["source"]["groupId"]
-                        endpoint = f"https://api.line.me/v2/bot/group/{group_id}/leave"
-                        headers = {
-                            "Authorization": f"Bearer {self.access_token}"
-                        }
-                        response = requests.post(
-                            endpoint,
-                            headers=headers,
-                            proxies=proxies
-                        )
-                        pprint(response.json())
-                    elif type == "room":
-                        room_id = event["source"]["roomId"]
-                        endpoint = f"https://api.line.me/v2/bot/room/{room_id}/leave"
-                        headers = {
-                            "Authorization": f"Bearer {self.access_token}"
-                        }
-                        response = requests.post(
-                            endpoint,
-                            headers=headers,
-                            proxies=proxies
-                        )
-                        pprint(response.json())
+    def send_reply(self, reply_token: str, messages: list[dict[str, str]]):
+        endpoint = "https://api.line.me/v2/bot/message/reply"
+        headers = self.__generate_headers(True, True)
+        data = {
+            "replyToekn": reply_token,
+            "messages": messages
+        }
+        response = requests.post(
+            endpoint,
+            headers=headers,
+            json=data,
+            proxies=proxies
+        )
+        pprint(response.json())
+    
+    def leave_group(self, group_id: str, is_room: bool = False):
+        if is_room:
+            endpoint = f"https://api.line.me/v2/bot/room/{group_id}/leave"
+        else:
+            endpoint = f"https://api.line.me/v2/bot/group/{group_id}/leave"
+        headers = self.__generate_headers(False, True)
+        response = requests.post(
+            endpoint,
+            headers=headers,
+            proxies=proxies
+        )
+        pprint(response.json())
+
+    def image_message(content_url: str, preview_url: str | None = None):
+        return {
+            "type": "image",
+            "originalContentUrl": content_url,
+            "previewImageUrl": preview_url if not preview_url else content_url
+        }
+    
+
+    def __generate_headers(self, content_type: bool, authorization: bool):
+        headers = {}
+        if content_type:
+            headers["Content-Type"] = "application/json"
+        if authorization:
+            headers["Authorization"] = f"Bearer {self.access_token}"
+        return headers
+    
