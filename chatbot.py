@@ -16,8 +16,9 @@ safety_settings = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
 }
 
-def generate_content(prompt: str) -> str:
+async def generate_content(prompt: str) -> str:
     try:
-        return model.generate_content(prompt, safety_settings=safety_settings).text
+        response = await model.generate_content_async(prompt, safety_settings=safety_settings)
+        return response.text
     except ValueError as e:
         return str(e)

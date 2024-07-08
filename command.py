@@ -1,4 +1,5 @@
 import chatbot
+import aiofiles
 from typing import Any
 
 class Command:
@@ -22,7 +23,7 @@ class ReplyCommand(Command):
     def __init__(self, triggers: list[str]) -> None:
         super().__init__(triggers)
 
-    def execute(self, event: dict[str, Any]) -> dict[str, str] | None:
+    async def execute(self, event: dict[str, Any]) -> dict[str, str] | None:
         pass
 
     def _image_message(self, content_url: str, preview_url: str | None = None) -> dict[str, str]:
@@ -42,7 +43,7 @@ class ActionCommand(Command):
     def __init__(self, triggers: list[str]) -> None:
         super().__init__(triggers)
     
-    def execute(self, event: dict[str, Any], bot) -> None:
+    async def execute(self, event: dict[str, Any], bot) -> None:
         pass
 
 class CockCommand(ReplyCommand):
@@ -53,7 +54,7 @@ class CockCommand(ReplyCommand):
     def can_execute(self, message: str) -> bool:
         return message.lower() == self.triggers[0]
     
-    def execute(self, event: dict[str, Any]) -> dict[str, str] | None:
+    async def execute(self, event: dict[str, Any]) -> dict[str, str] | None:
         message = self._extract_message(event)
         if self.can_execute(message):
             cock_url = "https://i.ytimg.com/vi/d94Nz9s3VBc/sddefault.jpg?v=5f73ada9"
@@ -68,10 +69,10 @@ class LeaveCommand(ActionCommand):
         cmd = message.split()[0]
         return cmd.lower() == self.triggers[0] or message.lower() == self.triggers[1] or message.lower() == self.triggers[2]
     
-    def execute(self, event: dict[str, Any], bot) -> None:
+    async def execute(self, event: dict[str, Any], bot) -> None:
         message = self._extract_message(event)
         if self.can_execute(message):
-            bot.leave_group(event)
+            await bot.leave_group(event)
 
 class NiggaCommand(ReplyCommand):
     def __init__(self) -> None:
@@ -83,15 +84,15 @@ class NiggaCommand(ReplyCommand):
     def can_execute(self, message: str) -> bool:
         return self.triggers[0] in message.lower()
     
-    def execute(self, event: dict[str, Any]) -> dict[str, str]:
+    async def execute(self, event: dict[str, Any]) -> dict[str, str]:
         message = self._extract_message(event)
         if self.can_execute(message):
             split = message.lower().split()
             new_count = split.count("nigga") + split.count("niggas")
             self.counter += new_count
             if self.counter % 10 == 0:
-                with open("amongus-bot-2/nword.count", "w") as f:
-                    f.write(str(self.counter))
+                async with aiofiles.open("amongus-bot-2/nword.count", "w") as f:
+                    await f.write(str(self.counter))
             return self._text_message(f"Nigga counter: {self.counter}")
 
 class ChatCommand(ReplyCommand):
@@ -103,11 +104,11 @@ class ChatCommand(ReplyCommand):
         cmd, args = self._extract_command(message)
         return cmd in self.triggers and args
     
-    def execute(self, event: dict[str, Any]) -> dict[str, str]:
+    async def execute(self, event: dict[str, Any]) -> dict[str, str]:
         message = self._extract_message(event)
         if self.can_execute(message):
             args = message.lower().split(" ", 1)[1]
-            response = chatbot.generate_content(args)
+            response = await chatbot.generate_content(args)
             return self._text_message(response)
 
 commands = [

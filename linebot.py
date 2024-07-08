@@ -33,13 +33,13 @@ class LineBot:
                 messages = []
                 for cmd in self.commands:
                     if isinstance(cmd, ReplyCommand):
-                        response = cmd.execute(event)
+                        response = await cmd.execute(event)
                         if response:
                             messages.append(response)
                     elif isinstance(cmd, ActionCommand):
-                        cmd.execute(event, self)
+                        await cmd.execute(event, self)
                 if messages:
-                    self.send_reply(event, messages)
+                    await self.send_reply(event, messages)
 
     async def send_reply(self, event: dict[str, Any], messages: list[dict[str, str]]):
         endpoint = "https://api.line.me/v2/bot/message/reply"
