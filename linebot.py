@@ -72,20 +72,7 @@ class LineBot:
             )
             print(json.dumps(response.json(), indent=4))
     
-    async def get_profile(self, user_id: str):
-        endpoint = f"https://api.line.me/v2/bot/profile/{user_id}"
-        headers = self._generate_headers(False, True)
-
-        async with httpx.AsyncClient(proxy=PROXY) as client:
-            response = await client.get(
-                endpoint,
-                headers=headers
-            )
-            resp_json = response.json()
-            print(json.dumps(resp_json, indent=4))
-            return resp_json
-    
-    async def get_profile_group(self, event: dict[str, Any], user_id: str):
+    async def get_profile(self, event: dict[str, Any], user_id: str):
         headers = self._generate_headers(False, True)
 
         source_type = event["source"]["type"]
@@ -95,6 +82,9 @@ class LineBot:
         elif source_type == "room":
             room_id = event["source"]["roomId"]
             endpoint = f"https://api.line.me/v2/bot/room/{room_id}/member/{user_id}"
+        else:
+            endpoint = f"https://api.line.me/v2/bot/profile/{user_id}"
+
 
         async with httpx.AsyncClient(proxy=PROXY) as client:
             response = await client.get(
