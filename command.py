@@ -106,10 +106,13 @@ class ChatCommand(ReplyCommand):
     
     async def execute(self, event: dict[str, Any]) -> dict[str, str]:
         message = self._extract_message(event)
+        cmd, args = self._extract_command(message)
         if self.can_execute(message):
             args = message.lower().split(" ", 1)[1]
             response = await chatbot.generate_content(args)
             return self._text_message(response)
+        elif cmd in self.triggers and not args:
+            return self._text_message("Apa yang mau gua jawab anjing")
 
 commands = [
     CockCommand(),
