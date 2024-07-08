@@ -8,13 +8,6 @@ class Command:
     def can_execute(self, message: str) -> bool:
         pass
 
-class ReplyCommand(Command):
-    def __init__(self, triggers: list[str]) -> None:
-        super().__init__(triggers)
-
-    def execute(self, event: dict[str, Any]) -> dict[str, str] | None:
-        pass
-    
     def _extract_message(self, event: dict[str, Any]) -> str:
         return event["message"]["text"]
     
@@ -24,6 +17,13 @@ class ReplyCommand(Command):
             return cmd, args
         except ValueError:
             return message, None
+
+class ReplyCommand(Command):
+    def __init__(self, triggers: list[str]) -> None:
+        super().__init__(triggers)
+
+    def execute(self, event: dict[str, Any]) -> dict[str, str] | None:
+        pass
 
     def _image_message(self, content_url: str, preview_url: str | None = None) -> dict[str, str]:
         return {
@@ -66,7 +66,7 @@ class LeaveCommand(ActionCommand):
     
     def can_execute(self, message: str) -> bool:
         cmd = message.split()[0]
-        return cmd.lower() == self.triggers[0] or message.lower() == self.triggers[1] or message.lower90 == self.triggers[2]
+        return cmd.lower() == self.triggers[0] or message.lower() == self.triggers[1] or message.lower() == self.triggers[2]
     
     def execute(self, event: dict[str, Any], bot) -> None:
         message = self._extract_message(event)
