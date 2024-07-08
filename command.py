@@ -126,5 +126,6 @@ commands = [
     CockCommand(),
     LeaveCommand(),
     NiggaCommand(),
-    ChatCommand()
+    ChatCommand(),
+    AvatarCommand()
 ]
