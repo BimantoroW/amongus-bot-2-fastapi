@@ -32,12 +32,9 @@ class LineBot:
             if event["type"] == "message":
                 messages = []
                 for cmd in self.commands:
-                    if isinstance(cmd, ReplyCommand):
-                        response = await cmd.execute(event)
-                        if response:
-                            messages.append(response)
-                    elif isinstance(cmd, ActionCommand):
-                        await cmd.execute(event, self)
+                    response = await cmd.execute(event)
+                    if response:
+                        messages.append(response)
                 if messages:
                     await self.send_reply(event, messages)
 
