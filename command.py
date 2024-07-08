@@ -92,12 +92,15 @@ class ChatCommand(Command):
     
     def can_execute(self, message: str) -> bool:
         cmd, args = self._extract_command(message)
-        return cmd in self.triggers and args
+        return cmd in self.triggers
     
     async def execute(self, event: dict[str, Any], bot = None) -> dict[str, str] | None:
         message = self._extract_message(event)
         if self.can_execute(message):
-            args = message.lower().split(" ", 1)[1]
+            cmd, args = self._extract_command(message)
+            quote_id = event["message"].get("quotedMessageId", None)
+            if quote_id:
+                await bot.get_content(quote_id)
             response = await chatbot.generate_content(args)
             return self._text_message(response)
 
