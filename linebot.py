@@ -3,15 +3,13 @@ import base64
 import hashlib
 import requests
 import json
+import httpx
 from fastapi import Request
 from command import commands, ReplyCommand, ActionCommand
 from typing import Any
 
 
-proxies = {
-    "http": "proxy.server:3128",
-    "https": "proxy.server:3128"
-}
+PROXY = "proxy.server:3128"
 
 class LineBot:
     def __init__(self, channel_secret: str, access_token: str) -> None:
@@ -43,7 +41,7 @@ class LineBot:
                 if messages:
                     self.send_reply(event, messages)
 
-    def send_reply(self, event: dict[str, Any], messages: list[dict[str, str]]):
+    async def send_reply(self, event: dict[str, Any], messages: list[dict[str, str]]):
         endpoint = "https://api.line.me/v2/bot/message/reply"
         reply_token = event["replyToken"]
         headers = self._generate_headers(True, True)
@@ -51,15 +49,16 @@ class LineBot:
             "replyToken": reply_token,
             "messages": messages
         }
-        response = requests.post(
-            endpoint,
-            headers=headers,
-            json=data,
-            proxies=proxies
-        )
-        print(json.dumps(response.json(), indent=4))
+
+        async with httpx.AsyncClient(proxy=PROXY) as client:
+            response = await client.post(
+                endpoint,
+                headers=headers,
+                json=data,
+            )
+            print(json.dumps(response.json(), indent=4))
     
-    def leave_group(self, event: dict[str, Any]):
+    async def leave_group(self, event: dict[str, Any]):
         source_type = event["source"]["type"]
         if source_type == "group":
             group_id = event["source"]["groupId"]
@@ -68,12 +67,13 @@ class LineBot:
             room_id = event["source"]["roomId"]
             endpoint = f"https://api.line.me/v2/bot/room/{room_id}/leave"
         headers = self._generate_headers(False, True)
-        response = requests.post(
-            endpoint,
-            headers=headers,
-            proxies=proxies
-        )
-        print(json.dumps(response.json(), indent=4))
+
+        async with httpx.AsyncClient(proxy=PROXY) as client:
+            response = await client.post(
+                endpoint,
+                headers=headers
+            )
+            print(json.dumps(response.json(), indent=4))
 
     def _generate_headers(self, content_type: bool, authorization: bool):
         headers = {}
@@ -82,4 +82,4 @@ class LineBot:
         if authorization:
             headers["Authorization"] = f"Bearer {self.access_token}"
         return headers
-    
+
