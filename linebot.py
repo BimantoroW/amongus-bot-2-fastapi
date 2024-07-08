@@ -2,8 +2,8 @@ import hmac
 import base64
 import hashlib
 import requests
+import json
 from fastapi import Request
-from pprint import pprint
 from command import commands, ReplyCommand, ActionCommand
 from typing import Any
 
@@ -56,7 +56,7 @@ class LineBot:
             json=data,
             proxies=proxies
         )
-        pprint(response.json())
+        print(json.dump(response.json(), indent=4))
     
     def leave_group(self, event: dict[str, Any]):
         source_type = event["source"]["type"]
@@ -72,8 +72,7 @@ class LineBot:
             headers=headers,
             proxies=proxies
         )
-        pprint(response.json())
-
+        print(json.dump(response.json(), indent=4))
 
     def _generate_headers(self, content_type: bool, authorization: bool):
         headers = {}
