@@ -94,6 +94,17 @@ class LineBot:
             resp_json = response.json()
             print(json.dumps(resp_json, indent=4))
             return resp_json
+    
+    async def get_content(self, message_id: str):
+        headers = self._generate_headers(False, True)
+        endpoint = f"https://api-data.line.me/v2/bot/message/{message_id}/content"
+
+        async with httpx.AsyncClient(proxy=PROXY) as client:
+            response = await client.get(
+                endpoint,
+                headers=headers
+            )
+            print(response.headers["Content-Type"])
 
     def _generate_headers(self, content_type: bool, authorization: bool):
         headers = {}
