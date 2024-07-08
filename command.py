@@ -118,9 +118,13 @@ class AvatarCommand(Command):
                 user_id = mention["mentionees"][0]["userId"]
             else:
                 user_id = event["source"]["userId"]
+
             profile = await bot.get_profile(event, user_id)
-            pfp_url = profile["pictureUrl"]
-            return self._image_message(pfp_url)
+            pfp_url = profile.get("pictureUrl", None)
+            if pfp_url:
+                return self._image_message(pfp_url)
+            else:
+                return self._text_message("No profile picture set")
 
 commands = [
     CockCommand(),
