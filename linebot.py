@@ -71,6 +71,19 @@ class LineBot:
                 headers=headers
             )
             print(json.dumps(response.json(), indent=4))
+    
+    async def get_profile(self, user_id: str):
+        endpoint = f"https://api.line.me/v2/bot/profile/{user_id}"
+        headers = self._generate_headers(False, True)
+
+        async with httpx.AsyncClient(proxy=PROXY) as client:
+            response = await client.get(
+                endpoint,
+                headers=headers
+            )
+            resp_json = response.json()
+            print(json.dumps(resp_json, indent=4))
+            return resp_json
 
     def _generate_headers(self, content_type: bool, authorization: bool):
         headers = {}
