@@ -5,7 +5,7 @@ import requests
 import json
 import httpx
 from fastapi import Request
-from command import commands, ReplyCommand, ActionCommand
+from command import commands
 from typing import Any
 
 
