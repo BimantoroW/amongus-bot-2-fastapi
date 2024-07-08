@@ -104,7 +104,12 @@ class LineBot:
                 endpoint,
                 headers=headers
             )
-            print(response.headers["Content-Type"])
+
+            print(f"Content type = {response.headers['Content-Type']}")
+            return {
+                "mime_type": response.headers["Content-Type"],
+                "data": response.content
+            }
 
     def _generate_headers(self, content_type: bool, authorization: bool):
         headers = {}

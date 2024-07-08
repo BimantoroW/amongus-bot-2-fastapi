@@ -2,6 +2,7 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from typing import Any
 
 
 load_dotenv()
@@ -16,9 +17,12 @@ safety_settings = {
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
 }
 
-async def generate_content(prompt: str) -> str:
+async def generate_content(prompt: str, content: dict["str, Any"] | None) -> str:
     try:
-        response = await model.generate_content_async(prompt, safety_settings=safety_settings)
+        if content:
+            response = await model.generate_content_async([prompt, content], safety_settings=safety_settings)
+        else:
+            response = await model.generate_content_async(prompt, safety_settings=safety_settings)
         return response.text.replace("**", "*")
     except ValueError as e:
         return str(e)

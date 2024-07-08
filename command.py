@@ -100,8 +100,10 @@ class ChatCommand(Command):
             cmd, args = self._extract_command(message)
             quote_id = event["message"].get("quotedMessageId", None)
             if quote_id:
-                await bot.get_content(quote_id)
-            response = await chatbot.generate_content(args)
+                content = await bot.get_content(quote_id)
+            else:
+                content = None
+            response = await chatbot.generate_content(args, content)
             return self._text_message(response)
 
 class AvatarCommand(Command):
