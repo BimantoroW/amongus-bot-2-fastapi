@@ -1,7 +1,8 @@
-from typing import Any
-from dotenv import load_dotenv
 import google.generativeai as genai
 import os
+from typing import Any
+from dotenv import load_dotenv
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 
 load_dotenv()
@@ -9,6 +10,13 @@ load_dotenv()
 api_key = os.environ["GOOGLE_API_KEY"]
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
+
+safety_settings = {
+    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+}
 
 class Command:
     def __init__(self, triggers: list[str]) -> None:
@@ -101,7 +109,7 @@ class ChatCommand(Command):
         if self.can_execute(message):
             args = message.lower().split(" ", 1)[1]
             response = model.generate_content(args)
-            reply_token = self._extract_reply_token(event)
+            reply_token = self._extract_reply_token(event, safety_settings=safety_settings)
             messages = [bot.text_message(response.text)]
             bot.send_reply(reply_token, messages)
 
