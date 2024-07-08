@@ -4,7 +4,7 @@ import hashlib
 import requests
 from fastapi import Request
 from pprint import pprint
-from command import commands
+from command import commands, ReplyCommand, ActionCommand
 from typing import Any
 
 
@@ -32,8 +32,15 @@ class LineBot:
         body = await request.json()
         for event in body["events"]:
             if event["type"] == "message":
+                messages = []
                 for cmd in self.commands:
-                    cmd.execute(event, self)
+                    if isinstance(cmd, ReplyCommand):
+                        response = cmd.execute(event)
+                        if response:
+                            messages.append(response)
+                    elif isinstance(cmd, ActionCommand):
+                        cmd.execute(event, self)
+                self.send_reply(event, messages)
 
     def send_reply(self, event: dict[str, Any], messages: list[dict[str, str]]):
         endpoint = "https://api.line.me/v2/bot/message/reply"

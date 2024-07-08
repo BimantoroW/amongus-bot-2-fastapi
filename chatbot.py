@@ -18,6 +18,6 @@ safety_settings = {
 
 def generate_content(prompt: str) -> str:
     try:
-        return model.generate_content(prompt, safety_settings=safety_settings)
+        return model.generate_content(prompt, safety_settings=safety_settings).text
     except ValueError as e:
         return str(e)
