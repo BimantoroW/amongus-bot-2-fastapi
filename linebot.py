@@ -40,7 +40,8 @@ class LineBot:
                             messages.append(response)
                     elif isinstance(cmd, ActionCommand):
                         cmd.execute(event, self)
-                self.send_reply(event, messages)
+                if messages:
+                    self.send_reply(event, messages)
 
     def send_reply(self, event: dict[str, Any], messages: list[dict[str, str]]):
         endpoint = "https://api.line.me/v2/bot/message/reply"
@@ -56,23 +57,23 @@ class LineBot:
             json=data,
             proxies=proxies
         )
-        print(json.dump(response.json(), indent=4))
+        print(json.dumps(response.json(), indent=4))
     
     def leave_group(self, event: dict[str, Any]):
         source_type = event["source"]["type"]
         if source_type == "group":
             group_id = event["source"]["groupId"]
-            endpoint = f"https://api.line.me/v2/bot/room/{group_id}/leave"
+            endpoint = f"https://api.line.me/v2/bot/group/{group_id}/leave"
         else:
             room_id = event["source"]["roomId"]
-            endpoint = f"https://api.line.me/v2/bot/group/{room_id}/leave"
+            endpoint = f"https://api.line.me/v2/bot/room/{room_id}/leave"
         headers = self._generate_headers(False, True)
         response = requests.post(
             endpoint,
             headers=headers,
             proxies=proxies
         )
-        print(json.dump(response.json(), indent=4))
+        print(json.dumps(response.json(), indent=4))
 
     def _generate_headers(self, content_type: bool, authorization: bool):
         headers = {}
