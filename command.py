@@ -108,8 +108,11 @@ class ChatCommand(Command):
         message = self._extract_message(event)
         if self.can_execute(message):
             args = message.lower().split(" ", 1)[1]
-            response = model.generate_content(args)
-            reply_token = self._extract_reply_token(event, safety_settings=safety_settings)
+            try:
+                response = model.generate_content(args, safety_settings=safety_settings)
+            except ValueError as e:
+                response = str(e)
+            reply_token = self._extract_reply_token(event)
             messages = [bot.text_message(response.text)]
             bot.send_reply(reply_token, messages)
 
