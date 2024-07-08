@@ -19,6 +19,6 @@ safety_settings = {
 async def generate_content(prompt: str) -> str:
     try:
         response = await model.generate_content_async(prompt, safety_settings=safety_settings)
-        return response.text
+        return response.text.replace("**", "*")
     except ValueError as e:
         return str(e)
