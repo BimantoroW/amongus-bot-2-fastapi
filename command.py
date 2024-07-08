@@ -118,7 +118,7 @@ class AvatarCommand(Command):
                 user_id = mention["mentionees"][0]["userId"]
             else:
                 user_id = event["source"]["userId"]
-            profile = await bot.get_profile(user_id)
+            profile = await bot.get_profile_group(event, user_id)
             pfp_url = profile["pictureUrl"]
             return self._image_message(pfp_url)
 
