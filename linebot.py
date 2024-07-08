@@ -5,6 +5,7 @@ import requests
 from fastapi import Request
 from pprint import pprint
 from command import commands
+from typing import Any
 
 
 proxies = {
@@ -34,9 +35,10 @@ class LineBot:
                 for cmd in self.commands:
                     cmd.execute(event, self)
 
-    def send_reply(self, reply_token: str, messages: list[dict[str, str]]):
+    def send_reply(self, event: dict[str, Any], messages: list[dict[str, str]]):
         endpoint = "https://api.line.me/v2/bot/message/reply"
-        headers = self.__generate_headers(True, True)
+        reply_token = event["replyToken"]
+        headers = self._generate_headers(True, True)
         data = {
             "replyToken": reply_token,
             "messages": messages
@@ -49,12 +51,15 @@ class LineBot:
         )
         pprint(response.json())
     
-    def leave_group(self, group_id: str, is_room: bool = False):
-        if is_room:
+    def leave_group(self, event: dict[str, Any]):
+        source_type = event["source"]["type"]
+        if source_type == "group":
+            group_id = event["source"]["groupId"]
             endpoint = f"https://api.line.me/v2/bot/room/{group_id}/leave"
         else:
-            endpoint = f"https://api.line.me/v2/bot/group/{group_id}/leave"
-        headers = self.__generate_headers(False, True)
+            room_id = event["source"]["roomId"]
+            endpoint = f"https://api.line.me/v2/bot/group/{room_id}/leave"
+        headers = self._generate_headers(False, True)
         response = requests.post(
             endpoint,
             headers=headers,
@@ -62,20 +67,8 @@ class LineBot:
         )
         pprint(response.json())
 
-    def image_message(self, content_url: str, preview_url: str | None = None):
-        return {
-            "type": "image",
-            "originalContentUrl": content_url,
-            "previewImageUrl": preview_url if preview_url else content_url
-        }
-    
-    def text_message(self, text: str):
-        return {
-            "type": "text",
-            "text": text
-        }
 
-    def __generate_headers(self, content_type: bool, authorization: bool):
+    def _generate_headers(self, content_type: bool, authorization: bool):
         headers = {}
         if content_type:
             headers["Content-Type"] = "application/json"
