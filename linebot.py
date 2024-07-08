@@ -9,7 +9,7 @@ from command import commands, ReplyCommand, ActionCommand
 from typing import Any
 
 
-PROXY = "proxy.server:3128"
+PROXY = "http://proxy.server:3128"
 
 class LineBot:
     def __init__(self, channel_secret: str, access_token: str) -> None:
