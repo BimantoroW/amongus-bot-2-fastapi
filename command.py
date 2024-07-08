@@ -86,7 +86,8 @@ class NiggaCommand(ReplyCommand):
     def execute(self, event: dict[str, Any]) -> dict[str, str]:
         message = self._extract_message(event)
         if self.can_execute(message):
-            new_count = message.lower().split().count("nigga")
+            split = message.lower().split()
+            new_count = split.count("nigga") + split.count("niggas")
             self.counter += new_count
             if self.counter % 10 == 0:
                 with open("amongus-bot-2/nword.count", "w") as f:
