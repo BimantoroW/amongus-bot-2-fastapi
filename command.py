@@ -1,8 +1,13 @@
 from typing import Any
+from dotenv import load_dotenv
 import google.generativeai as genai
 import os
 
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+load_dotenv()
+
+api_key = os.environ["GOOGLE_API_KEY"]
+genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 class Command:
@@ -85,8 +90,11 @@ class ChatCommand(Command):
         super().__init__(triggers)
     
     def can_execute(self, message: str) -> bool:
-        cmd, args = message.lower().split(" ", 1)
-        return cmd in self.triggers and args != ""
+        try:
+            cmd, args = message.lower().split(" ", 1)
+            return cmd in self.triggers and args != ""
+        except ValueError:
+            return False
     
     def execute(self, event: dict[str, Any], bot) -> None:
         message = self._extract_message(event)
