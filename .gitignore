@@ -22,6 +22,7 @@ venv
 docs.zip
 archive.zip
 nword.count
+spiking
 
 # vim temporary files
 *~
