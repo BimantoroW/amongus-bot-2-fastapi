@@ -1,7 +1,6 @@
-import chatbot
 import aiofiles
-import httpx
-from typing import Any
+from typing import Any, Coroutine
+from chatbot import ChatBotPool
 
 class Command:
     def __init__(self, triggers: list[str]) -> None:
@@ -35,6 +34,15 @@ class Command:
             return cmd, args
         except ValueError:
             return message, None
+    
+    def _get_source(self, event: dict[str, Any]) -> str:
+        source_type = event["source"]["type"]
+        if source_type == "group":
+            return event["source"]["groupId"]
+        elif source_type == "room":
+            return event["source"]["roomId"]
+        else:
+            return event["source"]["userId"]
 
 class CockCommand(Command):
     def __init__(self) -> None:
@@ -86,9 +94,10 @@ class NiggaCommand(Command):
             return self._text_message(f"Nigga counter: {self.counter}")
 
 class ChatCommand(Command):
-    def __init__(self) -> None:
+    def __init__(self, bot_pool: ChatBotPool) -> None:
         triggers = ["/chat"]
         super().__init__(triggers)
+        self.bot_pool = bot_pool
     
     def can_execute(self, message: str) -> bool:
         cmd, args = self._extract_command(message)
@@ -98,13 +107,33 @@ class ChatCommand(Command):
         message = self._extract_message(event)
         if self.can_execute(message):
             cmd, args = self._extract_command(message)
+            bot = await self.bot_pool.get_bot(self._get_source(event))
             quote_id = event["message"].get("quotedMessageId", None)
             if quote_id:
                 content = await bot.get_content(quote_id)
             else:
                 content = None
-            response = await chatbot.generate_content(args, content)
+            response = await bot.send_message([args, content])
+            self.bot_pool.release_bot(bot)
             return self._text_message(response)
+
+class ResetChatCommand(Command):
+    def __init__(self, bot_pool: ChatBotPool) -> None:
+        triggers = ["/chatreset"]
+        super().__init__(triggers)
+        self.bot_pool = bot_pool
+    
+    def can_execute(self, message: str) -> bool:
+        cmd, args = self._extract_command(message)
+        return cmd in self.triggers
+    
+    async def execute(self, event: dict[str, Any], bot=None) -> dict[str, str] | None:
+        message = self._extract_message(event)
+        if self.can_execute(message):
+            bot = await self.bot_pool.get_bot(self._get_source(event))
+            await bot.reset()
+            self.bot_pool.release_bot(bot)
+            return self._text_message("Chat reset")
 
 class AvatarCommand(Command):
     def __init__(self) -> None:
@@ -130,11 +159,3 @@ class AvatarCommand(Command):
                 return self._image_message(pfp_url)
             else:
                 return self._text_message("No profile picture set")
-
-commands = [
-    CockCommand(),
-    LeaveCommand(),
-    NiggaCommand(),
-    ChatCommand(),
-    AvatarCommand()
-]

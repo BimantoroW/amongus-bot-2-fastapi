@@ -1,18 +1,17 @@
 import hmac
 import base64
 import hashlib
-import requests
 import json
 import httpx
 from fastapi import Request
-from command import commands
+from command import Command
 from typing import Any
 
 
 PROXY = "http://proxy.server:3128"
 
 class LineBot:
-    def __init__(self, channel_secret: str, access_token: str) -> None:
+    def __init__(self, channel_secret: str, access_token: str, commands: list[Command]) -> None:
         self.channel_secret = channel_secret
         self.access_token = access_token
         self.commands = commands

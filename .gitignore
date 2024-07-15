@@ -23,6 +23,7 @@ docs.zip
 archive.zip
 nword.count
 spiking
+sqlite3.db
 
 # vim temporary files
 *~

@@ -1,30 +1,35 @@
 import aiosqlite
+import sqlite3
 from google import generativeai as genai
 
 class MessageDB:
     def __init__(self, path: str) -> None:
         self.path = path
     
-    async def create_tables(self) -> None:
-        async with aiosqlite.connect(self.path) as db:
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS content(
-                        id INTEGER PRIMARY KEY,
-                        owner_id TEXT NOT NULL,
-                        role TEXT NOT NULL
-                    )
-            """)
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS part(
-                        id INTEGER PRIMARY KEY,
-                        content_id INTEGER,
-                        is_text BOOLEAN NOT NULL,
-                        text TEXT,
-                        mime_type TEXT,
-                        data BLOB,
-                        FOREIGN KEY (content_id) REFERENCES content (id) ON DELETE CASCADE ON UPDATE CASCADE
-                    )
-            """)
+    def create_tables(self) -> None:
+        db = sqlite3.connect(self.path)
+        cur = db.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS content(
+                    id INTEGER PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
+                    role TEXT NOT NULL
+                )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS part(
+                    id INTEGER PRIMARY KEY,
+                    content_id INTEGER,
+                    is_text BOOLEAN NOT NULL,
+                    text TEXT,
+                    mime_type TEXT,
+                    data BLOB,
+                    FOREIGN KEY (content_id) REFERENCES content (id) ON DELETE CASCADE ON UPDATE CASCADE
+                )
+        """)
+
+        cur.close()
+        db.close()
     
     async def insert_history(self, owner_id: str, history: list[genai.protos.Content]) -> None:
         async with aiosqlite.connect(self.path) as db:
@@ -44,6 +49,24 @@ class MessageDB:
                         await db.execute("""
                             INSERT INTO part(content_id, is_text, mime_type, data) VALUES(?, ?, ?, ?)
                         """, (content_id, False, part.inline_data.mime_type, part.inline_data.data))
+            await db.commit()
+    
+    async def delete_history(self, owner_id: str) -> None:
+        async with aiosqlite.connect(self.path) as db:
+            query_del_part = """
+                DELETE FROM part p
+                WHERE p.content_id IN (
+                    SELECT c.id
+                    FROM content c
+                    WHERE c.owner_id=?
+                )
+            """
+            query_del_content = """
+                DELETE FROM content
+                WHERE owner_id=?
+            """
+            await db.execute(query_del_part, (owner_id,))
+            await db.execute(query_del_content, (owner_id,))
             await db.commit()
     
     async def get_history(self, owner_id: str) -> list[genai.protos.Content]:
