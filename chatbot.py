@@ -32,7 +32,7 @@ class ChatBot:
     
     async def send_message(self, content: genai.types.ContentType) -> str:
         response = await self.chat_session.send_message_async(content, safety_settings=self.safety_settings)
-        return response.text.replace("**", "*")
+        return response.text.replace("**", "*").strip()
     
     async def save_reset(self) -> None:
         if self.delete_history:
@@ -81,12 +81,13 @@ class ChatBotPool:
         self.locked.pop(bot.owner_id)
         self.unlocked[bot.owner_id] = bot
     
-    def clean_pool(self) -> None:
+    async def clean_pool(self) -> None:
         expiry = 300 # 5 minutes
         now = time.time()
-        for bot in self.unlocked.values():
+        for bot in list(self.unlocked.values()):
             if now - bot.last_queried >= expiry:
-                self.unlocked.pop(bot.owner_id)
+                await bot.save_reset()
+                del self.unlocked[bot.owner_id]
 
     def _pop_oldest_unlocked(self) -> ChatBot:
         oldest = 2 ** 32 - 1

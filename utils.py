@@ -54,7 +54,7 @@ class MessageDB:
     async def delete_history(self, owner_id: str) -> None:
         async with aiosqlite.connect(self.path) as db:
             query_del_part = """
-                DELETE FROM part p
+                DELETE FROM part AS p
                 WHERE p.content_id IN (
                     SELECT c.id
                     FROM content c

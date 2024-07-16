@@ -10,12 +10,13 @@ from google import generativeai as genai
 
 load_dotenv()
 
-db = MessageDB("sqlite3.db")
+db = MessageDB("amongus-bot-2/sqlite3.db")
 db.create_tables()
 
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-bot_pool = ChatBotPool(5, model, db)
+bot_pool = ChatBotPool(4, model, db)
 
 commands = [
     cmd.CockCommand(),
@@ -40,7 +41,7 @@ async def root():
 async def callback(request: Request):
     is_valid_signature = await linebot.is_valid_signature(request)
     if is_valid_signature:
-        bot_pool.clean_pool()
+        await bot_pool.clean_pool()
         await linebot.execute(request)
         return ""
     else:

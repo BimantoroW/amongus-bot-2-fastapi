@@ -107,14 +107,14 @@ class ChatCommand(Command):
         message = self._extract_message(event)
         if self.can_execute(message):
             cmd, args = self._extract_command(message)
-            bot = await self.bot_pool.get_bot(self._get_source(event))
+            prompt = [args]
+            chatbot = await self.bot_pool.get_bot(self._get_source(event))
             quote_id = event["message"].get("quotedMessageId", None)
             if quote_id:
                 content = await bot.get_content(quote_id)
-            else:
-                content = None
-            response = await bot.send_message([args, content])
-            self.bot_pool.release_bot(bot)
+                prompt.append(content)
+            response = await chatbot.send_message(prompt)
+            self.bot_pool.release_bot(chatbot)
             return self._text_message(response)
 
 class ResetChatCommand(Command):
@@ -131,7 +131,7 @@ class ResetChatCommand(Command):
         message = self._extract_message(event)
         if self.can_execute(message):
             bot = await self.bot_pool.get_bot(self._get_source(event))
-            await bot.reset()
+            bot.reset()
             self.bot_pool.release_bot(bot)
             return self._text_message("Chat reset")
 
